@@ -7,7 +7,7 @@ import EmployeeCreate from "./components/EmployeeCreate";
 import EmployeeEdit from "./components/EmployeeEdit";
 import NotificationsProvider from "./hooks/useNotifications/NotificationsProvider";
 import DialogsProvider from "./hooks/useDialogs/DialogsProvider";
-import AppTheme from "../shared-theme/AppTheme";
+import AppTheme from "./shared-theme/AppTheme";
 import {
   dataGridCustomizations,
   datePickersCustomizations,
