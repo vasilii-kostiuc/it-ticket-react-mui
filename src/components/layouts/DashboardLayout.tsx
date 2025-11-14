@@ -4,9 +4,9 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import { Outlet } from "react-router";
-import DashboardHeader from "./DashboardHeader";
-import DashboardSidebar from "./DashboardSidebar";
-import SitemarkIcon from "../SitemarkIcon";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
+import SitemarkIcon from "@/components/SitemarkIcon";
 
 export default function DashboardLayout() {
   const theme = useTheme();
