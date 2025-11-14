@@ -1,12 +1,12 @@
 import CssBaseline from "@mui/material/CssBaseline";
 import { createHashRouter, RouterProvider } from "react-router";
-import DashboardLayout from "./components/DashboardLayout";
+import DashboardLayout from "./components/dashboard/DashboardLayout";
 import EmployeeList from "./components/EmployeeList";
 import EmployeeShow from "./components/EmployeeShow";
 import EmployeeCreate from "./components/EmployeeCreate";
 import EmployeeEdit from "./components/EmployeeEdit";
 import NotificationsProvider from "./hooks/useNotifications/NotificationsProvider";
-import DialogsProvider from "./hooks/useDialogs/DialogsProvider";
+import DialogsProvider from "@/hooks/useDialogs/DialogsProvider";
 import AppTheme from "./shared-theme/AppTheme";
 import {
   dataGridCustomizations,
