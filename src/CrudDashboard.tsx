@@ -15,11 +15,16 @@ import {
   formInputCustomizations,
 } from "./theme/customizations";
 import SignUp from "./components/views/SignUp";
+import SignIn from "./components/views/SignIn";
 
 const router = createBrowserRouter([
   {
     path: "/register",
     Component: SignUp,
+  },
+  {
+    path: "/login",
+    Component: SignIn,
   },
   {
     path: "/",
