@@ -81,6 +81,7 @@ export default function DashboardLayout() {
           component="main"
           sx={{
             display: "flex",
+            maxWidth: "100%",
             flexDirection: "column",
             flex: 1,
             overflow: "auto",

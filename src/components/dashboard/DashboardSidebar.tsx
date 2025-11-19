@@ -7,6 +7,8 @@ import List from "@mui/material/List";
 import Toolbar from "@mui/material/Toolbar";
 import type {} from "@mui/material/themeCssVarsAugmentation";
 import PersonIcon from "@mui/icons-material/Person";
+import PeopleIcon from "@mui/icons-material/People";
+import GroupsIcon from "@mui/icons-material/Groups";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import DescriptionIcon from "@mui/icons-material/Description";
 import LayersIcon from "@mui/icons-material/Layers";
@@ -177,6 +179,48 @@ export default function DashboardSidebar({
                     icon={<DescriptionIcon />}
                     href="/reports/traffic"
                     selected={!!matchPath("/reports/traffic", pathname)}
+                  />
+                </List>
+              }
+            />
+            <DashboardSidebarPageItem
+              id="users"
+              title="Users"
+              icon={<PeopleIcon />}
+              href="/users"
+              selected={!!matchPath("/users", pathname)}
+              defaultExpanded={!!matchPath("/users", pathname)}
+              expanded={expandedItemIds.includes("users")}
+              nestedNavigation={
+                <List
+                  dense
+                  sx={{
+                    padding: 0,
+                    my: 1,
+                    pl: mini ? 0 : 1,
+                    minWidth: 240,
+                  }}
+                >
+                  <DashboardSidebarPageItem
+                    id=""
+                    title="Users"
+                    icon={<PersonIcon />}
+                    href="/users"
+                    selected={!!matchPath("/users", pathname)}
+                  />
+                  <DashboardSidebarPageItem
+                    id="roles"
+                    title="Roles"
+                    icon={<GroupsIcon />}
+                    href="/roles"
+                    selected={!!matchPath("/roles", pathname)}
+                  />
+                  <DashboardSidebarPageItem
+                    id="Permissions"
+                    title="Permissions"
+                    icon={<DescriptionIcon />}
+                    href="/permissions"
+                    selected={!!matchPath("/permissions", pathname)}
                   />
                 </List>
               }
