@@ -14,8 +14,9 @@ import {
   sidebarCustomizations,
   formInputCustomizations,
 } from "./theme/customizations";
-import SignUp from "./components/views/SignUp";
-import SignIn from "./components/views/SignIn";
+
+import SignUp from "./components/views/auth/SignUp";
+import SignIn from "./components/views/auth/SignIn";
 
 const router = createBrowserRouter([
   {
