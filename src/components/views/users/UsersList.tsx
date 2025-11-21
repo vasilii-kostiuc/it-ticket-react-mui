@@ -20,8 +20,8 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
-import { useDialogs } from "../hooks/useDialogs/useDialogs";
-import useNotifications from "../hooks/useNotifications/useNotifications";
+import { useDialogs } from "@/hooks/useDialogs/useDialogs";
+import useNotifications from "@/hooks/useNotifications/useNotifications";
 // import {
 //   deleteOne as deleteEmployee,
 //   getMany as getEmployees,
@@ -30,19 +30,19 @@ import useNotifications from "../hooks/useNotifications/useNotifications";
 
 import { useUsersStore } from "@/stores/users";
 
-import PageContainer from "./PageContainer";
+import PageContainer from "@/components/PageContainer";
 import { User } from "@/models/user";
 
 const INITIAL_PAGE_SIZE = 10;
 
-const initialState = React.useMemo(
-  () => ({
-    pagination: { paginationModel: { pageSize: INITIAL_PAGE_SIZE } },
-  }),
-  []
-);
-
 export default function UsersList() {
+  const initialState = React.useMemo(
+    () => ({
+      pagination: { paginationModel: { pageSize: INITIAL_PAGE_SIZE } },
+    }),
+    []
+  );
+
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -74,13 +74,13 @@ export default function UsersList() {
     rowCount: 0,
   });
 
-  const usersStore = useUsersStore((state) => state);
+  const store = useUsersStore((state) => state);
 
   const handleRefresh = React.useCallback(() => {
-    if (!usersStore.loading) {
-      usersStore.fetchUsers();
+    if (!store.loading) {
+      store.fetchAll();
     }
-  }, [usersStore.loading, usersStore.fetchUsers]);
+  }, [store.loading, store.fetchAll]);
 
   const handleCreateClick = React.useCallback(() => {
     navigate("/users/create");
@@ -107,13 +107,13 @@ export default function UsersList() {
 
       if (confirmed) {
         try {
-          await usersStore.deleteUser(Number(user.id));
+          await store.deleteUser(Number(user.id));
 
           notifications.show("User deleted successfully.", {
             severity: "success",
             autoHideDuration: 3000,
           });
-          usersStore.fetchUsers();
+          store.fetchAll();
         } catch (deleteError) {
           notifications.show(
             `Failed to delete user. Reason:' ${(deleteError as Error).message}`,
@@ -123,17 +123,31 @@ export default function UsersList() {
             }
           );
         }
-        usersStore.loading = false;
+        store.loading = false;
       }
     },
-    [dialogs, notifications, usersStore]
+    [dialogs, notifications, store]
   );
 
   const columns = React.useMemo<GridColDef[]>(
     () => [
-      { field: "id", headerName: "ID" },
+      { field: "id", headerName: "ID", type: "number" },
       { field: "name", headerName: "Name", width: 140 },
       { field: "email", headerName: "Email", width: 200 },
+      {
+        field: "created_at",
+        headerName: "Created At",
+        width: 200,
+        type: "dateTime",
+        valueFormatter: (value) => new Date(value).toLocaleString(),
+      },
+      {
+        field: "updated_at",
+        headerName: "Updated At",
+        type: "dateTime",
+        width: 200,
+        valueFormatter: (value) => new Date(value).toLocaleString(),
+      },
       {
         field: "actions",
         type: "actions",
@@ -162,6 +176,9 @@ export default function UsersList() {
     (model: GridPaginationModel) => {
       setPaginationModel(model);
 
+      store.params.page = model.page + 1;
+      store.params.per_page = model.pageSize;
+
       searchParams.set("page", String(model.page));
       searchParams.set("pageSize", String(model.pageSize));
 
@@ -170,6 +187,7 @@ export default function UsersList() {
       navigate(
         `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
       );
+      store.fetchAll();
     },
     [navigate, pathname, searchParams]
   );
@@ -183,8 +201,36 @@ export default function UsersList() {
         (model.quickFilterValues && model.quickFilterValues.length > 0)
       ) {
         searchParams.set("filter", JSON.stringify(model));
+
+        // Преобразуем GridFilterModel в формат для Spatie: { field: value }
+        const filterObject: Record<string, any> = {};
+        model.items.forEach((item) => {
+          const field = item.field;
+
+          const operator = item.operator; // 'contains', 'equals', 'startsWith', 'endsWith'
+
+          switch (operator) {
+            case "startsWith":
+              filterObject[`${field}_starts`] = item.value;
+              break;
+            case "endsWith":
+              filterObject[`${field}_ends`] = item.value;
+              break;
+            case "contains":
+              filterObject[field] = item.value; // partial filter
+              break;
+            case "equals":
+              filterObject[field] = item.value; // exact filter
+              break;
+            default:
+              filterObject[field] = item.value;
+          }
+        });
+
+        store.params.filter = filterObject;
       } else {
         searchParams.delete("filter");
+        store.params.filter = undefined;
       }
 
       const newSearchParamsString = searchParams.toString();
@@ -192,6 +238,7 @@ export default function UsersList() {
       navigate(
         `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
       );
+      store.fetchAll();
     },
     [navigate, pathname, searchParams]
   );
@@ -209,6 +256,12 @@ export default function UsersList() {
 
       if (model.length > 0) {
         searchParams.set("sort", JSON.stringify(model));
+        store.params.sort = model
+          .map(
+            (sortItem) =>
+              `${sortItem.sort == "desc" ? "-" : ""}${sortItem.field}`
+          )
+          .join(",");
       } else {
         searchParams.delete("sort");
       }
@@ -218,13 +271,18 @@ export default function UsersList() {
       navigate(
         `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
       );
+
+      store.fetchAll();
     },
     [navigate, pathname, searchParams]
   );
 
   const pageTitle = "Users";
 
-  usersStore.fetchUsers();
+  React.useEffect(() => {
+    store.fetchAll();
+  }, [store.fetchAll]);
+
   return (
     <PageContainer
       title={pageTitle}
@@ -253,14 +311,14 @@ export default function UsersList() {
       }
     >
       <Box sx={{ flex: 1, width: "100%" }}>
-        {usersStore.error ? (
+        {store.error ? (
           <Box sx={{ flexGrow: 1 }}>
-            <Alert severity="error">{usersStore.error}</Alert>
+            <Alert severity="error">{store.error}</Alert>
           </Box>
         ) : (
           <DataGrid
-            rows={usersStore.users}
-            rowCount={usersStore.meta.total}
+            rows={store.users}
+            rowCount={store.meta?.total || 0}
             columns={columns}
             pagination
             sortingMode="server"
@@ -274,7 +332,7 @@ export default function UsersList() {
             onFilterModelChange={handleFilterModelChange}
             disableRowSelectionOnClick
             onRowClick={handleRowClick}
-            loading={usersStore.loading}
+            loading={store.loading}
             initialState={initialState}
             showToolbar
             pageSizeOptions={[5, INITIAL_PAGE_SIZE, 25]}

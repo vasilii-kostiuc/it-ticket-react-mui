@@ -1,10 +1,10 @@
 import { create } from "zustand";
 import axios from "axios";
-
+import { useNavigate } from "react-router";
 interface AuthState {
   isLoggedIn: boolean;
   loading: boolean;
-  accessToken: string;
+  access_token: string;
   errors: Record<string, Array<string>>;
   login: (data: { email: string; password: string }) => Promise<void>;
   logout: () => void;
@@ -21,12 +21,11 @@ export const useAuthStore = create<AuthState>((set, get) => {
   if (storedToken) {
     axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
   }
-
   return {
     isLoggedIn: !!storedToken,
     loading: false,
     errors: {},
-    accessToken: storedToken,
+    access_token: storedToken,
 
     login: async (data) => {
       set({ loading: true, errors: {} });
@@ -34,7 +33,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         console.log("baseURL:" + axios.defaults.baseURL);
         const res = await axios.post("auth/login", data);
         set({
-          accessToken: res.data.data.access_token,
+          access_token: res.data.data.access_token,
           isLoggedIn: true,
         });
         localStorage.setItem("access_token", res.data.data.access_token);
@@ -55,7 +54,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
       try {
         const res = await axios.post("auth/register", data);
         set({
-          accessToken: res.data.data.access_token,
+          access_token: res.data.data.access_token,
           isLoggedIn: true,
         });
         localStorage.setItem("access_token", res.data.data.access_token);
@@ -70,16 +69,16 @@ export const useAuthStore = create<AuthState>((set, get) => {
     },
 
     logout: () => {
-      set({ accessToken: "", isLoggedIn: false });
-      localStorage.removeItem("accessToken");
+      set({ access_token: "", isLoggedIn: false });
+      localStorage.removeItem("access_token");
       delete axios.defaults.headers.common["Authorization"];
     },
 
     refreshToken: async () => {
       try {
         const res = await axios.post("auth/refresh");
-        set({ accessToken: res.data.data.access_token });
-        localStorage.setItem("accessToken", res.data.data.access_token);
+        set({ access_token: res.data.data.access_token });
+        localStorage.setItem("access_token", res.data.data.access_token);
       } catch {
         get().logout();
       }

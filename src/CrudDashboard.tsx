@@ -1,10 +1,5 @@
 import CssBaseline from "@mui/material/CssBaseline";
-import { createBrowserRouter, RouterProvider } from "react-router";
-import DashboardLayout from "./components/layouts/DashboardLayout";
-import EmployeeList from "./components/EmployeeList";
-import EmployeeShow from "./components/EmployeeShow";
-import EmployeeCreate from "./components/EmployeeCreate";
-import EmployeeEdit from "./components/EmployeeEdit";
+import { RouterProvider } from "react-router";
 import NotificationsProvider from "./hooks/useNotifications/NotificationsProvider";
 import DialogsProvider from "@/hooks/useDialogs/DialogsProvider";
 import AppTheme from "./shared-theme/AppTheme";
@@ -14,56 +9,8 @@ import {
   sidebarCustomizations,
   formInputCustomizations,
 } from "./theme/customizations";
+import { router } from "./router";
 
-import SignUp from "./components/views/auth/SignUp";
-import SignIn from "./components/views/auth/SignIn";
-
-const router = createBrowserRouter([
-  {
-    path: "/register",
-    Component: SignUp,
-  },
-  {
-    path: "/login",
-    Component: SignIn,
-  },
-  {
-    path: "/",
-    Component: DashboardLayout,
-    children: [
-      {
-        index: true,
-        Component: EmployeeList,
-      },
-      {
-        path: "employees",
-        Component: EmployeeList,
-      },
-      {
-        path: "employees/:employeeId",
-        Component: EmployeeShow,
-      },
-      {
-        path: "employees/new",
-        Component: EmployeeCreate,
-      },
-      {
-        path: "employees/:employeeId/edit",
-        Component: EmployeeEdit,
-      },
-    ],
-  },
-  {
-    path: "*",
-    Component: DashboardLayout,
-    children: [
-      {
-        index: true,
-        Component: EmployeeList,
-      },
-    ],
-  },
-]);
 const themeComponents = {
   ...dataGridCustomizations,
   ...datePickersCustomizations,
