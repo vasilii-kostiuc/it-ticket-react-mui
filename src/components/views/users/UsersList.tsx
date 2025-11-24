@@ -13,6 +13,7 @@ import {
   GridPaginationModel,
   GridSortModel,
   GridEventListener,
+  GridRowSelectionModel,
   gridClasses,
 } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
@@ -50,6 +51,11 @@ export default function UsersList() {
   const dialogs = useDialogs();
   const notifications = useNotifications();
 
+  const store = useUsersStore((state) => state);
+  const setParams = useUsersStore((state) => state.setParams);
+  const fetchAll = useUsersStore((state) => state.fetchAll);
+  const deleteMany = useUsersStore((state) => state.deleteMany);
+
   const [paginationModel, setPaginationModel] =
     React.useState<GridPaginationModel>({
       page: searchParams.get("page") ? Number(searchParams.get("page")) : 0,
@@ -57,6 +63,7 @@ export default function UsersList() {
         ? Number(searchParams.get("pageSize"))
         : INITIAL_PAGE_SIZE,
     });
+
   const [filterModel, setFilterModel] = React.useState<GridFilterModel>(
     searchParams.get("filter")
       ? JSON.parse(searchParams.get("filter") ?? "")
@@ -66,6 +73,9 @@ export default function UsersList() {
     searchParams.get("sort") ? JSON.parse(searchParams.get("sort") ?? "") : []
   );
 
+  const [selectionModel, setSelectionModel] =
+    React.useState<GridRowSelectionModel>({ type: "include", ids: new Set() });
+
   const [rowsState, setRowsState] = React.useState<{
     rows: User[];
     rowCount: number;
@@ -74,17 +84,72 @@ export default function UsersList() {
     rowCount: 0,
   });
 
-  const store = useUsersStore((state) => state);
-
   const handleRefresh = React.useCallback(() => {
     if (!store.loading) {
-      store.fetchAll();
+      fetchAll();
     }
-  }, [store.loading, store.fetchAll]);
+  }, [store.loading, fetchAll]);
 
   const handleCreateClick = React.useCallback(() => {
     navigate("/users/create");
   }, [navigate]);
+
+  const handleBulkDelete = React.useCallback(async () => {
+    // Получаем список выбранных ID с учетом типа выделения
+    let selectedIds: number[];
+    if (selectionModel.type === "exclude") {
+      // "exclude" = выбраны все, кроме ids
+      const excludedIds = new Set(selectionModel.ids);
+      selectedIds = store.users
+        .filter((user) => !excludedIds.has(user.id))
+        .map((user) => Number(user.id));
+    } else {
+      // "include" = выбраны только ids
+      selectedIds = Array.from(selectionModel.ids) as number[];
+    }
+
+    if (selectedIds.length === 0) {
+      notifications.show("Please select users to delete.", {
+        severity: "warning",
+        autoHideDuration: 3000,
+      });
+      return;
+    }
+
+    const confirmed = await dialogs.confirm(
+      `Do you wish to delete ${selectedIds.length} user(s)?`,
+      {
+        title: `Delete users?`,
+        severity: "error",
+        okText: "Delete",
+        cancelText: "Cancel",
+      }
+    );
+
+    if (confirmed) {
+      try {
+        await deleteMany(selectedIds);
+
+        notifications.show(
+          `${selectedIds.length} user(s) deleted successfully.`,
+          {
+            severity: "success",
+            autoHideDuration: 3000,
+          }
+        );
+        setSelectionModel({ type: "include", ids: new Set() });
+        fetchAll();
+      } catch (deleteError) {
+        notifications.show(
+          `Failed to delete users. Reason: ${(deleteError as Error).message}`,
+          {
+            severity: "error",
+            autoHideDuration: 3000,
+          }
+        );
+      }
+    }
+  }, [selectionModel, dialogs, notifications, deleteMany, fetchAll]);
 
   const handleRowEdit = React.useCallback(
     (user: User) => () => {
@@ -113,7 +178,7 @@ export default function UsersList() {
             severity: "success",
             autoHideDuration: 3000,
           });
-          store.fetchAll();
+          fetchAll();
         } catch (deleteError) {
           notifications.show(
             `Failed to delete user. Reason:' ${(deleteError as Error).message}`,
@@ -123,7 +188,6 @@ export default function UsersList() {
             }
           );
         }
-        store.loading = false;
       }
     },
     [dialogs, notifications, store]
@@ -175,9 +239,12 @@ export default function UsersList() {
   const handlePaginationModelChange = React.useCallback(
     (model: GridPaginationModel) => {
       setPaginationModel(model);
+      setSelectionModel({ type: "include", ids: new Set() }); // Сброс выделения при смене страницы
 
-      store.params.page = model.page + 1;
-      store.params.per_page = model.pageSize;
+      setParams({
+        page: model.page + 1,
+        per_page: model.pageSize,
+      });
 
       searchParams.set("page", String(model.page));
       searchParams.set("pageSize", String(model.pageSize));
@@ -187,9 +254,9 @@ export default function UsersList() {
       navigate(
         `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
       );
-      store.fetchAll();
+      fetchAll();
     },
-    [navigate, pathname, searchParams]
+    [navigate, pathname, searchParams, setParams, fetchAll]
   );
 
   const handleFilterModelChange = React.useCallback(
@@ -227,10 +294,10 @@ export default function UsersList() {
           }
         });
 
-        store.params.filter = filterObject;
+        setParams({ filter: filterObject });
       } else {
         searchParams.delete("filter");
-        store.params.filter = undefined;
+        setParams({ filter: undefined });
       }
 
       const newSearchParamsString = searchParams.toString();
@@ -238,9 +305,9 @@ export default function UsersList() {
       navigate(
         `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
       );
-      store.fetchAll();
+      fetchAll();
     },
-    [navigate, pathname, searchParams]
+    [navigate, pathname, searchParams, setParams, fetchAll]
   );
 
   const handleRowClick = React.useCallback<GridEventListener<"rowClick">>(
@@ -256,14 +323,17 @@ export default function UsersList() {
 
       if (model.length > 0) {
         searchParams.set("sort", JSON.stringify(model));
-        store.params.sort = model
-          .map(
-            (sortItem) =>
-              `${sortItem.sort == "desc" ? "-" : ""}${sortItem.field}`
-          )
-          .join(",");
+        setParams({
+          sort: model
+            .map(
+              (sortItem) =>
+                `${sortItem.sort == "desc" ? "-" : ""}${sortItem.field}`
+            )
+            .join(","),
+        });
       } else {
         searchParams.delete("sort");
+        setParams({ sort: undefined });
       }
 
       const newSearchParamsString = searchParams.toString();
@@ -272,21 +342,65 @@ export default function UsersList() {
         `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
       );
 
-      store.fetchAll();
+      fetchAll();
     },
-    [navigate, pathname, searchParams]
+    [navigate, pathname, searchParams, setParams, fetchAll]
+  );
+  const handleSelectionModelChange = React.useCallback(
+    (newSelectionModel: GridRowSelectionModel) => {
+      console.log("Selection changed:", newSelectionModel);
+      setSelectionModel(newSelectionModel);
+    },
+    []
   );
 
   const pageTitle = "Users";
 
+  // Инициализация параметров из URL при первой загрузке
   React.useEffect(() => {
-    store.fetchAll();
-  }, [store.fetchAll]);
+    setParams({
+      page: paginationModel.page + 1,
+      per_page: paginationModel.pageSize,
+      filter:
+        filterModel.items.length > 0
+          ? filterModel.items.reduce((acc, item) => {
+              const field = item.field;
+              const operator = item.operator;
+              switch (operator) {
+                case "startsWith":
+                  acc[`${field}_starts`] = item.value;
+                  break;
+                case "endsWith":
+                  acc[`${field}_ends`] = item.value;
+                  break;
+                case "contains":
+                case "equals":
+                default:
+                  acc[field] = item.value;
+              }
+              return acc;
+            }, {} as Record<string, any>)
+          : undefined,
+      sort:
+        sortModel.length > 0
+          ? sortModel
+              .map(
+                (sortItem) =>
+                  `${sortItem.sort === "desc" ? "-" : ""}${sortItem.field}`
+              )
+              .join(",")
+          : undefined,
+    });
+  }, []); // Только при монтировании
+
+  React.useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
 
   return (
     <PageContainer
       title={pageTitle}
-      breadcrumbs={[{ title: pageTitle }]}
+      breadcrumbs={[{ title: pageTitle }, { title: "Users", path: "/users" }]}
       actions={
         <Stack direction="row" alignItems="center" spacing={1}>
           <Tooltip title="Reload data" placement="right" enterDelay={1000}>
@@ -300,6 +414,21 @@ export default function UsersList() {
               </IconButton>
             </div>
           </Tooltip>
+          {(selectionModel.type === "exclude" ||
+            selectionModel.ids.size > 0) && (
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleBulkDelete}
+              startIcon={<DeleteIcon />}
+            >
+              Delete (
+              {selectionModel.type === "exclude"
+                ? store.users.length - selectionModel.ids.size
+                : selectionModel.ids.size}
+              )
+            </Button>
+          )}
           <Button
             variant="contained"
             onClick={handleCreateClick}
@@ -332,9 +461,12 @@ export default function UsersList() {
             onFilterModelChange={handleFilterModelChange}
             disableRowSelectionOnClick
             onRowClick={handleRowClick}
+            rowSelectionModel={selectionModel}
+            onRowSelectionModelChange={handleSelectionModelChange}
             loading={store.loading}
             initialState={initialState}
             showToolbar
+            checkboxSelection
             pageSizeOptions={[5, INITIAL_PAGE_SIZE, 25]}
             sx={{
               [`& .${gridClasses.columnHeader}, & .${gridClasses.cell}`]: {

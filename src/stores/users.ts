@@ -31,11 +31,16 @@ interface UsersState {
     next: string | null;
   };
 
+  // Методы управления параметрами
+  setParams: (params: Partial<UsersState["params"]>) => void;
+  setLoading: (loading: boolean) => void;
+
   // CRUD методы
   fetchAll: () => Promise<void>;
   createUser: (data: UserCreateData) => Promise<void>;
   updateUser: (id: number, data: UserUpdateData) => Promise<void>;
   deleteUser: (id: number) => Promise<void>;
+  deleteMany: (ids: number[]) => Promise<void>;
 }
 
 export const useUsersStore = create<UsersState>((set, get) => ({
@@ -46,6 +51,14 @@ export const useUsersStore = create<UsersState>((set, get) => ({
   params: {
     page: 1,
     per_page: 10,
+  },
+
+  setParams: (params) => {
+    set({ params: { ...get().params, ...params } });
+  },
+
+  setLoading: (loading) => {
+    set({ loading });
   },
 
   fetchAll: async () => {
@@ -81,7 +94,28 @@ export const useUsersStore = create<UsersState>((set, get) => ({
       set({ loading: false });
     }
   },
-  createUser: async (data) => {},
-  updateUser: async (id, data) => {},
-  deleteUser: async (id) => {},
+  createUser: async (_data) => {},
+  updateUser: async (_id, _data) => {},
+  deleteUser: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      await axios.delete(`users/${id}`);
+    } catch (error: any) {
+      set({ error: error.message || "Failed to delete user." });
+      throw error;
+    } finally {
+      set({ loading: false });
+    }
+  },
+  deleteMany: async (ids) => {
+    set({ loading: true, error: null });
+    try {
+      await axios.post("users/bulk-delete", { ids });
+    } catch (error: any) {
+      set({ error: error.message || "Failed to delete users." });
+      throw error;
+    } finally {
+      set({ loading: false });
+    }
+  },
 }));
