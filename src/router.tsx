@@ -1,12 +1,12 @@
 import { createBrowserRouter } from "react-router";
-import DashboardLayout from "./components/layouts/DashboardLayout";
-import EmployeeList from "./components/EmployeeList";
-import EmployeeShow from "./components/EmployeeShow";
-import EmployeeCreate from "./components/EmployeeCreate";
-import EmployeeEdit from "./components/EmployeeEdit";
-import SignUp from "./components/views/auth/SignUp";
-import SignIn from "./components/views/auth/SignIn";
-import UsersList from "./components/views/users/UsersList";
+import DashboardLayout from "./shared/layouts/DashboardLayout/DashboardLayout";
+import EmployeeList from "./features/employees/EmployeeList";
+import EmployeeShow from "./features/employees/EmployeeShow";
+import EmployeeCreate from "./features/employees/EmployeeCreate";
+import EmployeeEdit from "./features/employees/EmployeeEdit";
+import SignUp from "./features/auth/views/SignUp";
+import SignIn from "./features/auth/views/SignIn";
+import UsersListNew from "./features/users/views/UsersListNew";
 
 export const router = createBrowserRouter([
   {
@@ -43,7 +43,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "users",
-        Component: UsersList,
+        Component: UsersListNew,
       },
     ],
   },

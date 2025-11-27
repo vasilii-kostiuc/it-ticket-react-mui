@@ -1,9 +1,9 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
+import "./styles/index.css";
 import App from "./App.tsx";
 import axios from "axios";
-import { useAuthStore } from "./stores/auth.ts";
+import { useAuthStore } from "./features/auth/store/auth.ts";
 import { router } from "./router.tsx";
 
 axios.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
