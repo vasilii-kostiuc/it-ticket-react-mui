@@ -1,31 +1,24 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
+import "./styles/index.css";
 import App from "./App.tsx";
 import axios from "axios";
-import { useAuthStore } from "./stores/auth.ts";
+import { useAuthStore } from "./features/auth/store/auth.ts";
+import { router } from "./router.tsx";
 
 axios.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
 axios.defaults.withCredentials = true;
 axios.defaults.baseURL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8876/api/v1/";
+  import.meta.env.VITE_API_URL || "http://localhost:8876/api/v1/";
 
-const { logout, refreshToken } = useAuthStore.getState();
+const { logout } = useAuthStore.getState();
 
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      // Сначала пытаемся обновить токен
-      try {
-        await refreshToken();
-        // Если успешно - повторяем исходный запрос
-        return axios.request(error.config);
-      } catch (refreshError) {
-        // Если refresh не удался - разлогиниваем
-        logout();
-        return Promise.reject(refreshError);
-      }
+      logout();
+      router.navigate("/login");
     }
     return Promise.reject(error);
   }
