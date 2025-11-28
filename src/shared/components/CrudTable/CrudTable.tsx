@@ -25,7 +25,7 @@ import { useDialogs } from "@/shared/hooks/useDialogs/useDialogs";
 import useNotifications from "@/shared/hooks/useNotifications/useNotifications";
 import PageContainer from "@/shared/components/PageContainer";
 
-import type { CrudTableStore, CrudTableProps } from "./types";
+import type { CrudTableProps } from "./types";
 
 const INITIAL_PAGE_SIZE = 10;
 

@@ -29,7 +29,13 @@ export interface CrudTableStore<T> {
     filter?: Record<string, any>;
     sort?: string;
   };
-
+  /** Навигационные ссылки для пагинации */
+  links?: {
+    first: string | null;
+    last: string | null;
+    prev: string | null;
+    next: string | null;
+  };
   /** Установить параметры запроса */
   setParams: (params: Partial<CrudTableStore<T>["params"]>) => void;
 
@@ -111,3 +117,21 @@ export interface CrudTableProps<T> {
   /** Название сущности во множественном числе */
   entityNamePlural?: string;
 }
+
+export const BaseColumns: Record<string, GridColDef> = {
+  id: { field: "id", headerName: "ID", type: "number", width: 80 },
+  created_at: {
+    field: "created_at",
+    headerName: "Created At",
+    width: 200,
+    type: "dateTime",
+    valueFormatter: (value) => new Date(value).toLocaleString(),
+  },
+  updated_at: {
+    field: "updated_at",
+    headerName: "Updated At",
+    type: "dateTime",
+    width: 200,
+    valueFormatter: (value) => new Date(value).toLocaleString(),
+  },
+};
