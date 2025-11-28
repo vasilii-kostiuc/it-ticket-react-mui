@@ -4,7 +4,11 @@ import type { GridColDef } from "@mui/x-data-grid";
  * Базовый интерфейс для store, совместимого с CrudTable
  * Любой store, использующий CrudTable, должен реализовывать этот интерфейс
  */
-export interface CrudTableStore<T> {
+export interface CrudTableStore<
+  T,
+  TCreate = Partial<Omit<T, "id" | "created_at" | "updated_at">>,
+  TUpdate = Partial<Omit<T, "id" | "created_at" | "updated_at">>
+> {
   /** Массив элементов для отображения */
   items: T[];
 
@@ -47,6 +51,10 @@ export interface CrudTableStore<T> {
 
   /** Массово удалить элементы по ID */
   deleteMany: (ids: (number | string)[]) => Promise<void>;
+
+  fetchOne?: (id: number | string) => Promise<T>;
+  createOne?: (data: TCreate) => Promise<T>;
+  updateOne?: (id: number | string, data: TUpdate) => Promise<T>;
 }
 
 /**
