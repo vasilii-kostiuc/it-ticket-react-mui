@@ -14,7 +14,7 @@ interface CrudStoreOptions<T> {
 
 interface ApiResponse<T> {
   success: boolean;
-  data: T[];
+  data: T[] | T | null | undefined;
   errors: Record<string, string>[] | null;
 
   meta?: {
@@ -145,7 +145,7 @@ export function createCrudStore<
           `${endpoint}?${queryParams.toString()}`
         );
 
-        let items = response.data.data;
+        let items = response.data.data as T[];
 
         if (transformResponse) {
           items = transformResponse(items);
@@ -162,8 +162,8 @@ export function createCrudStore<
     fetchOne: async (id: number | string) => {
       const item = await withLoading(set, async () => {
         set({ error: null, validationErrors: null });
-        const response = await axios.get<T>(`${endpoint}/${id}`);
-        return response.data;
+        const response = await axios.get<ApiResponse<T>>(`${endpoint}/${id}`);
+        return response.data.data as T;
       });
 
       return item;

@@ -54,13 +54,13 @@ export interface CrudTableStore<
   fetchAll: () => Promise<void>;
 
   /** Получить один элемент по ID (для форм редактирования, не сохраняет в store) */
-  fetchOne?: (id: number | string) => Promise<T>;
+  fetchOne: (id: number | string) => Promise<T>;
 
   /** Создать новый элемент */
-  createOne?: (data: TCreate) => Promise<T>;
+  createOne: (data: TCreate) => Promise<T>;
 
   /** Обновить существующий элемент */
-  updateOne?: (id: number | string, data: TUpdate) => Promise<T>;
+  updateOne: (id: number | string, data: TUpdate) => Promise<T>;
 
   /** Удалить один элемент по ID */
   deleteOne: (id: number | string) => Promise<void>;
