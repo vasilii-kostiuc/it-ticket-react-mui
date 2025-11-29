@@ -11,6 +11,8 @@ import PermissionsList from "./features/rbac/permissions/views/PermissionsList";
 import RolesList from "./features/rbac/roles/views/RolesList";
 import PermissionEdit from "./features/rbac/permissions/views/PermissionEdit";
 import PermissionCreate from "./features/rbac/permissions/views/PermissionCreate";
+import RoleCreate from "./features/rbac/roles/views/RoleCreate";
+import RoleEdit from "./features/rbac/roles/views/RoleEdit";
 
 export const router = createBrowserRouter([
   {
@@ -68,6 +70,14 @@ export const router = createBrowserRouter([
       {
         path: "roles",
         Component: RolesList,
+      },
+      {
+        path: "roles/:id/edit",
+        Component: RoleEdit,
+      },
+      {
+        path: "roles/create",
+        Component: RoleCreate,
       },
     ],
   },

@@ -1,26 +1,26 @@
-import { usePermissionsStore } from "../store/permissions";
-import { Permission } from "../types";
+import { useRolesStore } from "../store/roles";
+import { Role } from "../types";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import PermissionForm from "../components/PermissionForm";
+import PermissionForm from "../components/RoleForm";
 import Box from "@mui/material/Box";
 import PageContainer from "@/shared/components/PageContainer";
+import RoleForm from "../components/RoleForm";
 
-export default function PermissionEdit() {
+export default function RoleEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const store = usePermissionsStore();
-  const [formValues, setFormValues] = useState<Partial<Permission>>({});
-
+  const store = useRolesStore();
+  const [formValues, setFormValues] = useState<Partial<Role>>({});
   useEffect(() => {
-    async function fetchPermission() {
+    async function fetchRole() {
       if (id) {
-        const fetchedPermission = await store.fetchOne(id);
-        setFormValues(fetchedPermission);
+        const fetchedRole = await store.fetchOne(id);
+        setFormValues(fetchedRole);
       }
     }
 
-    fetchPermission();
+    fetchRole();
   }, [id]);
 
   const handleFieldChange = (name: string, value: any) => {
@@ -31,22 +31,22 @@ export default function PermissionEdit() {
     e.preventDefault();
     if (id) {
       await store.updateOne(Number(id), formValues);
-      navigate(`/permissions`);
+      navigate(`/roles`);
     }
   };
 
   return (
     <PageContainer
-      title={`Edit Permission ${id}`}
+      title={`Edit Role ${id}`}
       breadcrumbs={[
         { title: "Users" },
-        { title: "Permissions", path: "/permissions" },
-        { title: `${formValues.name}`, path: `/permissions/${id}` },
+        { title: "Roles", path: "/roles" },
+        { title: `${formValues.name}`, path: `/roles/${id}` },
         { title: "Edit" },
       ]}
     >
       <Box sx={{ display: "flex", flex: 1 }}>
-        <PermissionForm
+        <RoleForm
           formValues={formValues}
           onFieldChange={handleFieldChange}
           handleSubmit={handleSubmit}
