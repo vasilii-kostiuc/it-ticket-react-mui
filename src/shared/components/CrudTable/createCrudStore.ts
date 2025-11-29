@@ -31,9 +31,11 @@ interface ApiResponse<T> {
   };
 }
 
-export function createCrudStore<T extends { id: number | string }>(
-  options: CrudStoreOptions<T>
-) {
+export function createCrudStore<
+  T extends { id: number | string },
+  TCreate = Partial<Omit<T, "id" | "created_at" | "updated_at">>,
+  TUpdate = Partial<Omit<T, "id" | "created_at" | "updated_at">>
+>(options: CrudStoreOptions<T>) {
   const {
     endpoint,
     transformResponse,
@@ -65,41 +67,49 @@ export function createCrudStore<T extends { id: number | string }>(
   /**
    * Обработка ошибок API
    */
-  const handleError = (error: unknown): string => {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError<{ message?: string }>;
-      return (
-        axiosError.response?.data?.message ||
-        axiosError.message ||
-        "An error occurred"
-      );
+  const handleError = (
+    set: (partial: Partial<CrudTableStore<T, TCreate, TUpdate>>) => void,
+    error: any
+  ) => {
+    console.error("API Error:", error);
+
+    if (error.isAxiosError && (error as AxiosError).response) {
+      error = error as AxiosError;
+      if (error.response?.status === 422) {
+        set({ validationErrors: error.response.data.errors, error: null });
+      } else {
+        set({
+          error: error.response?.data?.message || error.message,
+          validationErrors: null,
+        });
+      }
+    } else {
+      set({
+        error: error.message || "An unexpected error occurred",
+        validationErrors: null,
+      });
     }
-    if (error instanceof Error) {
-      return error.message;
-    }
-    return "Unknown error occurred";
   };
 
   /**
    * Wrapper для установки loading state
    */
   const withLoading = async <R>(
-    set: (partial: Partial<CrudTableStore<T>>) => void,
+    set: (partial: Partial<CrudTableStore<T, TCreate, TUpdate>>) => void,
     action: () => Promise<R>
   ): Promise<R> => {
-    set({ loading: true, error: null });
+    set({ loading: true, error: null, validationErrors: null });
     try {
       return await action();
     } catch (error) {
-      const errorMessage = handleError(error);
-      set({ error: errorMessage, loading: false });
+      handleError(set, error);
       throw error; // Re-throw для обработки в компонентах
     } finally {
       set({ loading: false });
     }
   };
 
-  return create<CrudTableStore<T>>((set, get) => ({
+  return create<CrudTableStore<T, TCreate, TUpdate>>((set, get) => ({
     // Initial state
     items: [],
     loading: false,
@@ -126,7 +136,6 @@ export function createCrudStore<T extends { id: number | string }>(
       await withLoading(set, async () => {
         let params = get().params;
 
-        // Трансформация параметров если нужно
         if (transformParams) {
           params = transformParams(params);
         }
@@ -138,7 +147,6 @@ export function createCrudStore<T extends { id: number | string }>(
 
         let items = response.data.data;
 
-        // Трансформация данных если нужно
         if (transformResponse) {
           items = transformResponse(items);
         }
@@ -151,9 +159,48 @@ export function createCrudStore<T extends { id: number | string }>(
       });
     },
 
-    deleteOne: async (id) => {
-      await withLoading(set, async () => {
-        await axios.delete(`${endpoint}/${id}`);
+    fetchOne: async (id: number | string) => {
+      const item = await withLoading(set, async () => {
+        set({ error: null, validationErrors: null });
+        const response = await axios.get<T>(`${endpoint}/${id}`);
+        return response.data;
+      });
+
+      return item;
+    },
+
+    createOne: async (data: TCreate) => {
+      const item = await withLoading(set, async () => {
+        set({ error: null, validationErrors: null });
+        const response = await axios.post<T>(endpoint, data);
+        return response.data;
+      });
+      return item;
+    },
+
+    updateOne: async (id: number | string, data: TUpdate) => {
+      const item = await withLoading(set, async () => {
+        set({ error: null, validationErrors: null });
+        try {
+          const response = await axios.put<T>(`${endpoint}/${id}`, data);
+          return response.data;
+        } catch (error) {
+          handleError(set, error);
+          throw error;
+        }
+      });
+      return item;
+    },
+
+    deleteOne: async (id: number | string) => {
+      return await withLoading(set, async () => {
+        set({ error: null, validationErrors: null });
+        try {
+          await axios.delete(`${endpoint}/${id}`);
+        } catch (error) {
+          handleError(set, error);
+          throw error;
+        }
 
         if (refetchAfterDelete) {
           await get().fetchAll();
@@ -165,13 +212,19 @@ export function createCrudStore<T extends { id: number | string }>(
       });
     },
 
-    deleteMany: async (ids) => {
+    deleteMany: async (ids: Array<number | string>) => {
       if (ids.length === 0) return;
 
       await withLoading(set, async () => {
-        await axios.delete(`${endpoint}/batch-delete`, {
-          params: { ids },
-        });
+        set({ error: null, validationErrors: null });
+        try {
+          const response = await axios.delete(`${endpoint}/batch-delete`, {
+            params: { ids },
+          });
+        } catch (error) {
+          handleError(set, error);
+          throw error;
+        }
 
         if (refetchAfterDelete) {
           await get().fetchAll();

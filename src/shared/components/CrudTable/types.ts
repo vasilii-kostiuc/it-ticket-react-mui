@@ -3,6 +3,10 @@ import type { GridColDef } from "@mui/x-data-grid";
 /**
  * Базовый интерфейс для store, совместимого с CrudTable
  * Любой store, использующий CrudTable, должен реализовывать этот интерфейс
+ *
+ * @template T - Тип элемента
+ * @template TCreate - Тип данных для создания (по умолчанию Partial без id, created_at, updated_at)
+ * @template TUpdate - Тип данных для обновления (по умолчанию Partial без id, created_at, updated_at)
  */
 export interface CrudTableStore<
   T,
@@ -15,8 +19,11 @@ export interface CrudTableStore<
   /** Состояние загрузки */
   loading: boolean;
 
-  /** Сообщение об ошибке */
+  /** Общая ошибка (message из response или текст ошибки) */
   error: string | null;
+
+  /** Ошибки валидации по полям (errors из Laravel response) */
+  validationErrors?: Record<string, string[]> | null;
 
   /** Метаданные пагинации */
   meta?: {
@@ -46,15 +53,20 @@ export interface CrudTableStore<
   /** Загрузить все элементы */
   fetchAll: () => Promise<void>;
 
+  /** Получить один элемент по ID (для форм редактирования, не сохраняет в store) */
+  fetchOne?: (id: number | string) => Promise<T>;
+
+  /** Создать новый элемент */
+  createOne?: (data: TCreate) => Promise<T>;
+
+  /** Обновить существующий элемент */
+  updateOne?: (id: number | string, data: TUpdate) => Promise<T>;
+
   /** Удалить один элемент по ID */
   deleteOne: (id: number | string) => Promise<void>;
 
   /** Массово удалить элементы по ID */
   deleteMany: (ids: (number | string)[]) => Promise<void>;
-
-  fetchOne?: (id: number | string) => Promise<T>;
-  createOne?: (data: TCreate) => Promise<T>;
-  updateOne?: (id: number | string, data: TUpdate) => Promise<T>;
 }
 
 /**
@@ -69,7 +81,7 @@ export interface CrudTableProps<T> {
   columns: GridColDef[];
 
   /** Хук для получения store */
-  useStore: () => CrudTableStore<T>;
+  useStore: () => CrudTableStore<T, any, any>;
 
   // Опциональные
   /** Базовый путь для навигации (например, "/users") */
