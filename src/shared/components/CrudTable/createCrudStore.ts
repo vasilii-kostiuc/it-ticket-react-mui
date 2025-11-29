@@ -218,7 +218,7 @@ export function createCrudStore<
       await withLoading(set, async () => {
         set({ error: null, validationErrors: null });
         try {
-          const response = await axios.delete(`${endpoint}/batch-delete`, {
+          await axios.delete(`${endpoint}/batch-delete`, {
             params: { ids },
           });
         } catch (error) {
