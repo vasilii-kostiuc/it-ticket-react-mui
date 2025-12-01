@@ -6,7 +6,13 @@ import EmployeeCreate from "./features/employees/EmployeeCreate";
 import EmployeeEdit from "./features/employees/EmployeeEdit";
 import SignUp from "./features/auth/views/SignUp";
 import SignIn from "./features/auth/views/SignIn";
-import UsersListNew from "./features/users/views/UsersListNew";
+import UsersList from "./features/users/views/UsersList";
+import PermissionsList from "./features/rbac/permissions/views/PermissionsList";
+import RolesList from "./features/rbac/roles/views/RolesList";
+import PermissionEdit from "./features/rbac/permissions/views/PermissionEdit";
+import PermissionCreate from "./features/rbac/permissions/views/PermissionCreate";
+import RoleCreate from "./features/rbac/roles/views/RoleCreate";
+import RoleEdit from "./features/rbac/roles/views/RoleEdit";
 
 export const router = createBrowserRouter([
   {
@@ -43,7 +49,35 @@ export const router = createBrowserRouter([
       },
       {
         path: "users",
-        Component: UsersListNew,
+        Component: UsersList,
+      },
+      {
+        path: "permissions",
+        Component: PermissionsList,
+      },
+      {
+        path: "permissions",
+        Component: PermissionsList,
+      },
+      {
+        path: "permissions/:id/edit",
+        Component: PermissionEdit,
+      },
+      {
+        path: "permissions/create",
+        Component: PermissionCreate,
+      },
+      {
+        path: "roles",
+        Component: RolesList,
+      },
+      {
+        path: "roles/:id/edit",
+        Component: RoleEdit,
+      },
+      {
+        path: "roles/create",
+        Component: RoleCreate,
       },
     ],
   },

@@ -1,18 +1,27 @@
 import type { GridColDef } from "@mui/x-data-grid";
 
 /**
- * Базовый интерфейс для store, совместимого с CrudTable
- * Любой store, использующий CrudTable, должен реализовывать этот интерфейс
+ *
+ * @template T - Тип элемента
+ * @template TCreate - Тип данных для создания (по умолчанию Partial без id, created_at, updated_at)
+ * @template TUpdate - Тип данных для обновления (по умолчанию Partial без id, created_at, updated_at)
  */
-export interface CrudTableStore<T> {
+export interface CrudTableStore<
+  T,
+  TCreate = Partial<Omit<T, "id" | "created_at" | "updated_at">>,
+  TUpdate = Partial<Omit<T, "id" | "created_at" | "updated_at">>
+> {
   /** Массив элементов для отображения */
   items: T[];
 
   /** Состояние загрузки */
   loading: boolean;
 
-  /** Сообщение об ошибке */
+  /** Общая ошибка (message из response или текст ошибки) */
   error: string | null;
+
+  /** Ошибки валидации по полям (errors из Laravel response) */
+  validationErrors?: Record<string, string[]> | null;
 
   /** Метаданные пагинации */
   meta?: {
@@ -29,12 +38,27 @@ export interface CrudTableStore<T> {
     filter?: Record<string, any>;
     sort?: string;
   };
-
+  /** Навигационные ссылки для пагинации */
+  links?: {
+    first: string | null;
+    last: string | null;
+    prev: string | null;
+    next: string | null;
+  };
   /** Установить параметры запроса */
   setParams: (params: Partial<CrudTableStore<T>["params"]>) => void;
 
   /** Загрузить все элементы */
   fetchAll: () => Promise<void>;
+
+  /** Получить один элемент по ID (для форм редактирования, не сохраняет в store) */
+  fetchOne: (id: number | string) => Promise<T>;
+
+  /** Создать новый элемент */
+  createOne: (data: TCreate) => Promise<T>;
+
+  /** Обновить существующий элемент */
+  updateOne: (id: number | string, data: TUpdate) => Promise<T>;
 
   /** Удалить один элемент по ID */
   deleteOne: (id: number | string) => Promise<void>;
@@ -55,7 +79,7 @@ export interface CrudTableProps<T> {
   columns: GridColDef[];
 
   /** Хук для получения store */
-  useStore: () => CrudTableStore<T>;
+  useStore: () => CrudTableStore<T, any, any>;
 
   // Опциональные
   /** Базовый путь для навигации (например, "/users") */
@@ -111,3 +135,21 @@ export interface CrudTableProps<T> {
   /** Название сущности во множественном числе */
   entityNamePlural?: string;
 }
+
+export const BaseColumns: Record<string, GridColDef> = {
+  id: { field: "id", headerName: "ID", type: "number", width: 80 },
+  created_at: {
+    field: "created_at",
+    headerName: "Created At",
+    width: 200,
+    type: "dateTime",
+    valueFormatter: (value) => new Date(value).toLocaleString(),
+  },
+  updated_at: {
+    field: "updated_at",
+    headerName: "Updated At",
+    type: "dateTime",
+    width: 200,
+    valueFormatter: (value) => new Date(value).toLocaleString(),
+  },
+};
