@@ -6,6 +6,7 @@ import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
+import PermissionsSelector from "./PermissionsSelector";
 
 interface RoleFormProps {
   formValues: Partial<Role>;
@@ -19,7 +20,7 @@ interface RoleFormProps {
   submitButtonLabel?: string;
 }
 
-export default function PermissionForm({
+export default function RoleForm({
   formValues,
   onFieldChange,
   handleSubmit,
@@ -77,6 +78,14 @@ export default function PermissionForm({
               fullWidth
             />
           </Grid>
+        </Grid>
+        <Grid size={{ xs: 12 }}>
+          <PermissionsSelector
+            selectedPermissions={formValues.permissions || []}
+            onChange={(permissions) =>
+              onFieldChange("permissions", permissions)
+            }
+          />
         </Grid>
       </FormGroup>
       <Stack direction="row" spacing={2} justifyContent="space-between">

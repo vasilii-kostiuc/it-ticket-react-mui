@@ -4,7 +4,6 @@ import { Permission } from "../types";
 import { usePermissionsStore } from "../store/permissions";
 import { BaseColumns } from "@/shared/components/CrudTable/types";
 
-// Определение колонок
 const columns: GridColDef[] = [
   BaseColumns.id,
   { field: "name", headerName: "Name", width: 140 },

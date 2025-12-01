@@ -5,12 +5,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import PermissionForm from "../components/PermissionForm";
 import Box from "@mui/material/Box";
 import PageContainer from "@/shared/components/PageContainer";
+import useNotifications from "@/shared/hooks/useNotifications/useNotifications";
 
 export default function PermissionEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
   const store = usePermissionsStore();
   const [formValues, setFormValues] = useState<Partial<Permission>>({});
+  const notifications = useNotifications();
 
   useEffect(() => {
     async function fetchPermission() {
@@ -31,6 +33,10 @@ export default function PermissionEdit() {
     e.preventDefault();
     if (id) {
       await store.updateOne(Number(id), formValues);
+      notifications.show("Permission updated successfully.", {
+        severity: "success",
+        autoHideDuration: 3000,
+      });
       navigate(`/permissions`);
     }
   };

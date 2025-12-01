@@ -2,6 +2,7 @@ export type Role = {
   id: string;
   name: string;
   description: string;
+  permissions: number[];
   created_at: string;
   updated_at: string;
 };

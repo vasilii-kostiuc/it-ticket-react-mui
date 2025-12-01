@@ -5,12 +5,13 @@ import { useNavigate } from "react-router-dom";
 import PermissionForm from "../components/PermissionForm";
 import Box from "@mui/material/Box";
 import PageContainer from "@/shared/components/PageContainer";
+import useNotifications from "@/shared/hooks/useNotifications/useNotifications";
 
 export default function PermissionCreate() {
   const navigate = useNavigate();
   const store = usePermissionsStore();
   const [formValues, setFormValues] = useState<Partial<Permission>>({});
-
+  const notifications = useNotifications();
   const handleFieldChange = (name: string, value: any) => {
     setFormValues((prev) => ({ ...prev, [name]: value }));
   };
@@ -18,6 +19,10 @@ export default function PermissionCreate() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await store.createOne(formValues);
+    notifications.show("Permission created successfully.", {
+      severity: "success",
+      autoHideDuration: 3000,
+    });
     navigate(`/permissions`);
   };
 

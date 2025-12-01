@@ -1,5 +1,5 @@
 export type Permission = {
-  id: string;
+  id: number;
   name: string;
   display_name: string;
   created_at: string;

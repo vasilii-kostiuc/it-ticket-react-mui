@@ -1,8 +1,6 @@
 import type { GridColDef } from "@mui/x-data-grid";
 
 /**
- * Базовый интерфейс для store, совместимого с CrudTable
- * Любой store, использующий CrudTable, должен реализовывать этот интерфейс
  *
  * @template T - Тип элемента
  * @template TCreate - Тип данных для создания (по умолчанию Partial без id, created_at, updated_at)

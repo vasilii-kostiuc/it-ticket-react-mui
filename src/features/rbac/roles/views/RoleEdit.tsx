@@ -2,15 +2,16 @@ import { useRolesStore } from "../store/roles";
 import { Role } from "../types";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import PermissionForm from "../components/RoleForm";
 import Box from "@mui/material/Box";
 import PageContainer from "@/shared/components/PageContainer";
 import RoleForm from "../components/RoleForm";
+import useNotifications from "@/shared/hooks/useNotifications/useNotifications";
 
 export default function RoleEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
   const store = useRolesStore();
+  const notifications = useNotifications();
   const [formValues, setFormValues] = useState<Partial<Role>>({});
   useEffect(() => {
     async function fetchRole() {
@@ -31,6 +32,10 @@ export default function RoleEdit() {
     e.preventDefault();
     if (id) {
       await store.updateOne(Number(id), formValues);
+      notifications.show("Role updated successfully.", {
+        severity: "success",
+        autoHideDuration: 3000,
+      });
       navigate(`/roles`);
     }
   };

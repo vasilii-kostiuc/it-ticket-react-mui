@@ -172,8 +172,8 @@ export function createCrudStore<
     createOne: async (data: TCreate) => {
       const item = await withLoading(set, async () => {
         set({ error: null, validationErrors: null });
-        const response = await axios.post<T>(endpoint, data);
-        return response.data;
+        const response = await axios.post<ApiResponse<T>>(endpoint, data);
+        return response.data.data as T;
       });
       return item;
     },
@@ -182,8 +182,11 @@ export function createCrudStore<
       const item = await withLoading(set, async () => {
         set({ error: null, validationErrors: null });
         try {
-          const response = await axios.put<T>(`${endpoint}/${id}`, data);
-          return response.data;
+          const response = await axios.put<ApiResponse<T>>(
+            `${endpoint}/${id}`,
+            data
+          );
+          return response.data.data as T;
         } catch (error) {
           handleError(set, error);
           throw error;
