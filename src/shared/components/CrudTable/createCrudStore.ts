@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import axios, { AxiosError } from "axios";
 import type { CrudTableStore } from "./types";
+import { ApiResponse } from "@/shared/api/ApiResponse";
 
 interface CrudStoreOptions<T> {
   endpoint: string;
@@ -10,25 +11,6 @@ interface CrudStoreOptions<T> {
   transformParams?: (params: any) => any;
 
   refetchAfterDelete?: boolean;
-}
-
-interface ApiResponse<T> {
-  success: boolean;
-  data: T[] | T | null | undefined;
-  errors: Record<string, string>[] | null;
-
-  meta?: {
-    total: number;
-    per_page: number;
-    current_page: number;
-    last_page: number;
-  };
-  links?: {
-    first: string | null;
-    last: string | null;
-    prev: string | null;
-    next: string | null;
-  };
 }
 
 export function createCrudStore<

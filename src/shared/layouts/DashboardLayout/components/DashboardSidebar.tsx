@@ -14,6 +14,9 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import LayersIcon from "@mui/icons-material/Layers";
 import { matchPath, useLocation } from "react-router";
 import DashboardSidebarContext from "@/shared/layouts/DashboardLayout/DashboardSidebarContext";
+import OptionsMenu from "@/shared/layouts/DashboardLayout/components/OptionsMenu";
+import DashboardSidebarAvatar from "@/shared/layouts/DashboardLayout/components/DashboardSidebarAvatar";
+
 import {
   DRAWER_WIDTH,
   MINI_DRAWER_WIDTH,
@@ -25,6 +28,9 @@ import {
   getDrawerSxTransitionMixin,
   getDrawerWidthTransitionMixin,
 } from "@/shared/layouts/DashboardLayout/mixins";
+import Stack from "@mui/material/Stack";
+import Avatar from "@mui/material/Avatar";
+import Typography from "@mui/material/Typography";
 
 export interface DashboardSidebarProps {
   expanded?: boolean;
@@ -236,6 +242,7 @@ export default function DashboardSidebar({
               selected={!!matchPath("/integrations", pathname)}
             />
           </List>
+          <DashboardSidebarAvatar />
         </Box>
       </React.Fragment>
     ),

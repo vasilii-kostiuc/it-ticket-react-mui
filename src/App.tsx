@@ -10,6 +10,9 @@ import {
   formInputCustomizations,
 } from "./shared/theme/customizations";
 import { router } from "./router";
+import CircularProgress from "@mui/material/CircularProgress";
+import { useEffect } from "react";
+import { useAuthStore } from "@/features/auth/store/auth";
 
 const themeComponents = {
   ...dataGridCustomizations,
@@ -18,7 +21,16 @@ const themeComponents = {
   ...formInputCustomizations,
 };
 
-export default function CrudDashboard(props: { disableCustomTheme?: boolean }) {
+export default function App(props: { disableCustomTheme?: boolean }) {
+  const { initAuth, loading } = useAuthStore();
+
+  // useEffect(() => {
+  //   (async () => {
+  //     await initAuth(); // Один раз при старте
+  //   })();
+  // }, []);
+
+  // if (loading) return <CircularProgress />;
   return (
     <AppTheme
       {...props}

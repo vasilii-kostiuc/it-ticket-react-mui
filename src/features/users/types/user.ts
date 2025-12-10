@@ -6,6 +6,14 @@ export interface User {
   updated_at: string;
 }
 
+export type UserProfile = User & {
+  avatar: string | null;
+};
+
+export type UserProfileUpdateData = Partial<
+  Omit<UserProfile, "id" | "created_at" | "updated_at">
+> & { avatar?: File | null };
+
 export type UserCreateData = Omit<User, "id" | "created_at" | "updated_at"> & {
   password: string;
   password_confirmation: string;
