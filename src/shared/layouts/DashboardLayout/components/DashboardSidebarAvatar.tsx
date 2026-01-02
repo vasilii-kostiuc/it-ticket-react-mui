@@ -1,9 +1,19 @@
 import { Avatar, Box, Stack, Typography } from "@mui/material";
 import OptionsMenu from "@/shared/layouts/DashboardLayout/components/OptionsMenu";
 import { useAuthStore } from "@/features/auth/store/auth";
+import { useEffect } from "react";
 
 export default function DashboardSidebarAvatar() {
-  const userProfile = useAuthStore((state) => state.userProfile);
+  const { userProfile, fetchProfile } = useAuthStore();
+
+  useEffect(() => {
+    async function fetchPro() {
+      await fetchProfile();
+    }
+    if (!userProfile) {
+      fetchPro();
+    }
+  }, []);
 
   return (
     <Stack
