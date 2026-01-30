@@ -5,6 +5,7 @@ import App from "./App.tsx";
 import axios from "axios";
 import { useAuthStore } from "./features/auth/store/auth.ts";
 import { router } from "./router.tsx";
+import { configureEcho } from "@laravel/echo-react";
 
 axios.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
 axios.defaults.withCredentials = true;
@@ -21,11 +22,21 @@ axios.interceptors.response.use(
       router.navigate("/login");
     }
     return Promise.reject(error);
-  }
+  },
 );
+
+configureEcho({
+  broadcaster: "reverb",
+  key: import.meta.env.VITE_REVERB_APP_KEY,
+  wsHost: import.meta.env.VITE_REVERB_HOST,
+  wsPort: import.meta.env.VITE_REVERB_PORT,
+  wssPort: import.meta.env.VITE_REVERB_PORT,
+  forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? "https") === "https",
+  enabledTransports: ["ws", "wss"],
+});
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />
-  </StrictMode>
+  </StrictMode>,
 );
