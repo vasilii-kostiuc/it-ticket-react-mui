@@ -25,6 +25,9 @@ axios.interceptors.response.use(
   },
 );
 
+// Получаем токен для Echo авторизации
+const token = localStorage.getItem("access_token");
+
 configureEcho({
   broadcaster: "reverb",
   key: import.meta.env.VITE_REVERB_APP_KEY,
@@ -33,6 +36,13 @@ configureEcho({
   wssPort: import.meta.env.VITE_REVERB_PORT,
   forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? "https") === "https",
   enabledTransports: ["ws", "wss"],
+  authEndpoint: "http://localhost:8876/broadcasting/auth",
+  auth: {
+    headers: {
+      "X-Requested-With": "XMLHttpRequest",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  },
 });
 
 createRoot(document.getElementById("root")!).render(

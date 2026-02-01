@@ -13,6 +13,7 @@ import { router } from "./router";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useEffect } from "react";
 import { useAuthStore } from "@/features/auth/store/auth";
+import { useEcho } from "@laravel/echo-react";
 
 const themeComponents = {
   ...dataGridCustomizations,
@@ -22,7 +23,11 @@ const themeComponents = {
 };
 
 export default function App(props: { disableCustomTheme?: boolean }) {
-  const { initAuth, loading } = useAuthStore();
+  // Слушаем приватный канал user.1 и событие TicketCreatedEvent
+  useEcho("user.1", ".ticket.created", (event: any) => {
+    console.log("TicketCreated event:", event);
+  });
+  //const { initAuth, loading } = useAuthStore();
 
   // useEffect(() => {
   //   (async () => {
